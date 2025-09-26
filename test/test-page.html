@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser MCP Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .test-section h2 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        input, textarea, select {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            display: none;
+        }
+
+        .hover-target {
+            padding: 20px;
+            background: #ffffcc;
+            border: 2px dashed #999;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .hover-target:hover {
+            background: #ffcc99;
+            border-color: #ff6600;
+        }
+
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Browser MCP Test Page</h1>
+    <p>This page contains various elements to test Browser MCP extension functionality.</p>
+
+    <div class="test-section">
+        <h2>🖱️ Click Tests</h2>
+        <button id="click-test-1" onclick="handleClick('Button 1')">Click Test Button 1</button>
+        <button id="click-test-2" onclick="handleClick('Button 2')">Click Test Button 2</button>
+        <button id="special-button" data-testid="special" onclick="handleClick('Special Button')">Special Button</button>
+        <div class="result" id="click-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>⌨️ Type Tests</h2>
+        <label>Text Input: <input type="text" id="text-input" placeholder="Type here..."></label><br>
+        <label>Email Input: <input type="email" id="email-input" placeholder="email@example.com"></label><br>
+        <label>Password Input: <input type="password" id="password-input" placeholder="password"></label><br>
+        <label>Textarea: <textarea id="textarea-input" rows="3" placeholder="Multi-line text..."></textarea></label><br>
+        <button onclick="showInputValues()">Show Input Values</button>
+        <div class="result" id="input-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Hover Tests</h2>
+        <div class="hover-target" id="hover-target" onmouseenter="handleHover('entered')" onmouseleave="handleHover('left')">
+            Hover over this area
+        </div>
+        <div class="result" id="hover-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Select Tests</h2>
+        <label>Country:
+            <select id="country-select" onchange="handleSelect(this)">
+                <option value="">-- Select Country --</option>
+                <option value="us">United States</option>
+                <option value="uk">United Kingdom</option>
+                <option value="ca">Canada</option>
+                <option value="fr">France</option>
+                <option value="de">Germany</option>
+            </select>
+        </label><br>
+
+        <label>Size:
+            <select id="size-select" onchange="handleSelect(this)">
+                <option value="small">Small</option>
+                <option value="medium" selected>Medium</option>
+                <option value="large">Large</option>
+                <option value="xl">Extra Large</option>
+            </select>
+        </label>
+        <div class="result" id="select-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 Navigation Tests</h2>
+        <a href="#section1" id="internal-link" onclick="handleNavigation('Internal Link')">Internal Link</a> |
+        <a href="https://example.com" id="external-link" target="_blank" onclick="handleNavigation('External Link')">External Link</a> |
+        <button onclick="testHistory()">Test History Navigation</button>
+        <div class="result" id="nav-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📄 Element Tests</h2>
+        <div id="dynamic-content">
+            <p id="text-element">This is a text element with ID.</p>
+            <span class="highlight">This span has a class "highlight".</span>
+            <div data-role="container" data-value="123">Container with data attributes</div>
+        </div>
+        <button onclick="addDynamicElement()">Add Dynamic Element</button>
+        <button onclick="removeDynamicElement()">Remove Dynamic Element</button>
+        <div class="result" id="element-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Console & Logging</h2>
+        <button onclick="generateLogs()">Generate Console Logs</button>
+        <button onclick="clearLog()">Clear Log</button>
+        <div class="log" id="console-log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Extension Status</h2>
+        <button onclick="checkExtensionStatus()">Check Extension Connection</button>
+        <button onclick="testWebSocket()">Test WebSocket Connection</button>
+        <div class="result" id="status-result"></div>
+    </div>
+
+    <script>
+        let logCounter = 0;
+
+        function log(message) {
+            const logElement = document.getElementById('console-log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function showResult(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+
+        function handleClick(buttonName) {
+            const message = `${buttonName} was clicked!`;
+            showResult('click-result', message);
+            log(`Click: ${message}`);
+        }
+
+        function showInputValues() {
+            const values = {
+                text: document.getElementById('text-input').value,
+                email: document.getElementById('email-input').value,
+                password: document.getElementById('password-input').value.replace(/./g, '*'),
+                textarea: document.getElementById('textarea-input').value
+            };
+
+            const message = `Values: ${JSON.stringify(values)}`;
+            showResult('input-result', message);
+            log(`Input Values: ${JSON.stringify(values)}`);
+        }
+
+        function handleHover(action) {
+            const message = `Mouse ${action} hover area`;
+            showResult('hover-result', message);
+            log(`Hover: ${message}`);
+        }
+
+        function handleSelect(selectElement) {
+            const message = `Selected: ${selectElement.value} from ${selectElement.id}`;
+            showResult('select-result', message);
+            log(`Select: ${message}`);
+        }
+
+        function handleNavigation(linkType) {
+            const message = `${linkType} clicked`;
+            showResult('nav-result', message);
+            log(`Navigation: ${message}`);
+            return false; // Prevent actual navigation for testing
+        }
+
+        function testHistory() {
+            showResult('nav-result', 'History navigation test');
+            log('History: Navigation test triggered');
+        }
+
+        function addDynamicElement() {
+            const container = document.getElementById('dynamic-content');
+            const newElement = document.createElement('div');
+            newElement.id = 'dynamic-element';
+            newElement.textContent = 'This is a dynamically added element';
+            newElement.style.background = '#e7f3ff';
+            newElement.style.padding = '10px';
+            newElement.style.margin = '5px 0';
+            container.appendChild(newElement);
+            showResult('element-result', 'Dynamic element added');
+            log('Element: Dynamic element added');
+        }
+
+        function removeDynamicElement() {
+            const element = document.getElementById('dynamic-element');
+            if (element) {
+                element.remove();
+                showResult('element-result', 'Dynamic element removed');
+                log('Element: Dynamic element removed');
+            } else {
+                showResult('element-result', 'No dynamic element to remove');
+                log('Element: No dynamic element found to remove');
+            }
+        }
+
+        function generateLogs() {
+            console.log(`Test log message ${++logCounter}`);
+            console.info(`Test info message ${logCounter}`);
+            console.warn(`Test warning message ${logCounter}`);
+            console.error(`Test error message ${logCounter}`);
+
+            log(`Generated console logs (${logCounter})`);
+        }
+
+        function clearLog() {
+            document.getElementById('console-log').innerHTML = '';
+            log('Log cleared');
+        }
+
+        function checkExtensionStatus() {
+            // This will be used to test extension communication
+            if (typeof window.browserMCP !== 'undefined') {
+                showResult('status-result', 'Extension detected and connected');
+                log('Status: Extension is connected');
+            } else {
+                showResult('status-result', 'Extension not detected');
+                log('Status: Extension not detected');
+            }
+        }
+
+        function testWebSocket() {
+            // Test WebSocket connection to MCP server
+            try {
+                const ws = new WebSocket('ws://localhost:9234');
+                ws.onopen = () => {
+                    showResult('status-result', 'WebSocket connection successful');
+                    log('WebSocket: Connection successful');
+                    ws.close();
+                };
+                ws.onerror = () => {
+                    showResult('status-result', 'WebSocket connection failed');
+                    log('WebSocket: Connection failed');
+                };
+            } catch (error) {
+                showResult('status-result', `WebSocket error: ${error.message}`);
+                log(`WebSocket: Error - ${error.message}`);
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Test page loaded successfully');
+            log('Browser MCP extension test page ready');
+        });
+
+        // Listen for extension messages
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'BROWSER_MCP_ACTION') {
+                log(`Extension Action: ${event.data.action} - ${JSON.stringify(event.data.params)}`);
+            }
+        });
+    </script>
+</body>
+</html>

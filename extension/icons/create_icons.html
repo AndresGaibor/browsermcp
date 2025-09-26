@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icons</title>
+</head>
+<body>
+    <canvas id="canvas16" width="16" height="16"></canvas>
+    <canvas id="canvas48" width="48" height="48"></canvas>
+    <canvas id="canvas128" width="128" height="128"></canvas>
+
+    <script>
+        function createIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            // Border radius effect
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.2);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Icon content - simplified browser/automation symbol
+            ctx.fillStyle = 'white';
+            const iconSize = size * 0.6;
+            const offset = (size - iconSize) / 2;
+
+            // Browser window outline
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = size * 0.08;
+            ctx.strokeRect(offset, offset + iconSize * 0.2, iconSize, iconSize * 0.7);
+
+            // Browser window top bar
+            ctx.fillRect(offset, offset + iconSize * 0.2, iconSize, iconSize * 0.15);
+
+            // Automation arrows/symbols
+            ctx.beginPath();
+            ctx.arc(size/2, size/2 + iconSize * 0.15, iconSize * 0.15, 0, 2 * Math.PI);
+            ctx.fill();
+
+            return canvas.toDataURL('image/png');
+        }
+
+        // Create all icon sizes
+        const canvas16 = document.getElementById('canvas16');
+        const canvas48 = document.getElementById('canvas48');
+        const canvas128 = document.getElementById('canvas128');
+
+        const icon16 = createIcon(canvas16, 16);
+        const icon48 = createIcon(canvas48, 48);
+        const icon128 = createIcon(canvas128, 128);
+
+        console.log('Icons generated. Right-click on canvas elements to save as PNG files.');
+    </script>
+</body>
+</html>

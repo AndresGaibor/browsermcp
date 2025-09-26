@@ -6,7 +6,7 @@ import {
   NavigateTool,
   PressKeyTool,
   WaitTool,
-} from "@repo/types/mcp/tool";
+} from "@/types/mcp";
 
 import { captureAriaSnapshot } from "@/utils/aria-snapshot";
 
@@ -86,13 +86,13 @@ export const wait: Tool = {
     inputSchema: zodToJsonSchema(WaitTool.shape.arguments),
   },
   handle: async (context, params) => {
-    const { time } = WaitTool.shape.arguments.parse(params);
-    await context.sendSocketMessage("browser_wait", { time });
+    const { milliseconds } = WaitTool.shape.arguments.parse(params);
+    await context.sendSocketMessage("browser_wait", { milliseconds });
     return {
       content: [
         {
           type: "text",
-          text: `Waited for ${time} seconds`,
+          text: `Waited for ${milliseconds} milliseconds`,
         },
       ],
     };
